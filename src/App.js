@@ -196,5 +196,25 @@ export default function App() {
         onClick={handleMapClick}
       >
         {redPieces.map((p) => (
-         
-
+          <DraggableCircle
+            key={p.id}
+            piece={p}
+            onDrag={updatePiecePosition}
+            onLabelChange={updatePieceLabel}
+          />
+        ))}
+        {bluePieces.map((p) => (
+          <DraggableCircle
+            key={p.id}
+            piece={p}
+            onDrag={updatePiecePosition}
+            onLabelChange={updatePieceLabel}
+          />
+        ))}
+        {markers.map((m) => (
+          <Marker key={m.id} marker={m} onDrag={updateMarkerPosition} />
+        ))}
+      </svg>
+    </div>
+  );
+}
