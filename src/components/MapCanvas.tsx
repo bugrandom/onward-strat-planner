@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 export default function MapCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -10,16 +10,17 @@ export default function MapCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Resize canvas to match container
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
 
-      // Example drawing logic
-      ctx.fillStyle = '#222';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#fff';
-      ctx.fillText('Map goes here', 20, 40);
+      const img = new Image();
+      img.src = new URL('../assets/map.png', import.meta.url).href;
+
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
     };
 
     resizeCanvas();
@@ -28,7 +29,7 @@ export default function MapCanvas() {
   }, []);
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-900">
+    <div className="w-full h-full bg-gray-900 overflow-hidden">
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );
