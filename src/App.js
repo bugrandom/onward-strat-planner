@@ -5,8 +5,8 @@ const MAP_HEIGHT = 600;
 
 const MAPS = [
   { name: 'Suburbia', image: '/maps/suburbia-clean.png' },
-  { name: 'Factory', image: '/maps/factory.png' },
-  { name: 'Downtown', image: '/maps/downtown.png' },
+  { name: 'DownFall', image: '/maps/downfall.png' },
+  { name: 'Quarantine', image: '/maps/quarantine.png' },
 ];
 
 const initialPieces = (prefix, y) =>
