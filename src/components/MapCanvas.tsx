@@ -13,36 +13,36 @@ export default function MapCanvas() {
     const img = new Image();
     img.src = new URL('../assets/map.png', import.meta.url).href;
 
-    const drawImageScaled = () => {
+    const drawImageCover = () => {
       if (!canvas || !ctx || !img.complete) return;
 
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
 
-      const canvasAspect = canvas.width / canvas.height;
-      const imageAspect = img.width / img.height;
+      const canvasRatio = canvas.width / canvas.height;
+      const imageRatio = img.width / img.height;
 
-      let drawWidth = canvas.width;
-      let drawHeight = canvas.height;
+      let srcX = 0, srcY = 0, srcWidth = img.width, srcHeight = img.height;
 
-      if (imageAspect > canvasAspect) {
-        drawHeight = canvas.width / imageAspect;
+      if (imageRatio > canvasRatio) {
+        // Image is wider — crop sides
+        srcWidth = img.height * canvasRatio;
+        srcX = (img.width - srcWidth) / 2;
       } else {
-        drawWidth = canvas.height * imageAspect;
+        // Image is taller — crop top/bottom
+        srcHeight = img.width / canvasRatio;
+        srcY = (img.height - srcHeight) / 2;
       }
 
-      const offsetX = (canvas.width - drawWidth) / 2;
-      const offsetY = (canvas.height - drawHeight) / 2;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+      ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, canvas.width, canvas.height);
     };
 
-    img.onload = drawImageScaled;
-    window.addEventListener('resize', drawImageScaled);
+    img.onload = drawImageCover;
+    window.addEventListener('resize', drawImageCover);
 
     return () => {
-      window.removeEventListener('resize', drawImageScaled);
+      window.removeEventListener('resize', drawImageCover);
     };
   }, []);
 
