@@ -1,146 +1,350 @@
-import React, { useState } from "react";
-import Draggable from "react-draggable";
+import React, { useState } from 'react';
 
-// Player icons with custom colors
-const PLAYER_ICONS = [
-  { id: 1, color: "bg-red-500", label: "Player 1" },
-  { id: 2, color: "bg-blue-500", label: "Player 2" },
-  { id: 3, color: "bg-green-500", label: "Player 3" },
-  { id: 4, color: "bg-yellow-500", label: "Player 4" },
-  { id: 5, color: "bg-purple-500", label: "Player 5" },
-  { id: 6, color: "bg-pink-500", label: "Player 6" },
-];
+const MAP_WIDTH = 800;
+const MAP_HEIGHT = 600;
 
-// Maps available
 const MAPS = [
-  {
-    name: "Quarantine",
-    image: "/images/quarantine.jpg", // place in public/images/
-  },
-  {
-    name: "Downfall",
-    image: "/images/downfall.jpg", // place in public/images/
-  },
-  {
-    name: "Suburbia",
-    image: "/images/suburbia.jpg", // place in public/images/
-  },
+  { name: 'Suburbia', image: '/maps/suburbia-clean.png' },
+  { name: 'Factory', image: '/maps/factory.png' },
+  { name: 'Downtown', image: '/maps/downtown.png' },
 ];
 
-function App() {
-  const [selectedMap, setSelectedMap] = useState(MAPS[0].image);
-  const [placedPlayers, setPlacedPlayers] = useState([]);
-  const [markers, setMarkers] = useState([]);
+const initialPieces = (prefix, y) =>
+  Array.from({ length: 5 }, (_, i) => ({
+    id: `${prefix}${i + 1}`,
+    label: String.fromCharCode(65 + i),
+    x: 100 + i * 60,
+    y,
+  }));
 
-  // Handle player drop
-  const handleDrop = (e, player) => {
-    const mapRect = document.getElementById("map-area").getBoundingClientRect();
-    const x = e.clientX - mapRect.left - 15;
-    const y = e.clientY - mapRect.top - 15;
+const markerTypes = {
+  FRAG: 'frag',
+  FLASH: 'flash',
+};
 
-    setPlacedPlayers((prev) => [
-      ...prev,
-      { ...player, x, y, id: Date.now() },
-    ]);
+function DraggableCircle({ piece, onDrag }) {
+  const [dragging, setDragging] = useState(false);
+  const [pos, setPos] = useState({ x: piece.x, y: piece.y });
+
+  const handlePointerDown = (e) => {
+    e.preventDefault();
+    setDragging(true);
+    e.target.setPointerCapture(e.pointerId);
   };
 
-  // Handle marker placement
-  const handleMapClick = (e) => {
-    const mapRect = document.getElementById("map-area").getBoundingClientRect();
-    const x = e.clientX - mapRect.left - 10;
-    const y = e.clientY - mapRect.top - 10;
+  const handlePointerMove = (e) => {
+    if (!dragging) return;
+    const rect = e.target.ownerSVGElement.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+    x = Math.max(12, Math.min(x, MAP_WIDTH - 12));
+    y = Math.max(12, Math.min(y, MAP_HEIGHT - 12));
+    setPos({ x, y });
+  };
 
-    setMarkers((prev) => [...prev, { x, y, id: Date.now() }]);
+  const handlePointerUp = (e) => {
+    setDragging(false);
+    onDrag(piece.id, pos.x, pos.y);
+    e.target.releasePointerCapture(e.pointerId);
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      {/* Sidebar - Player Selection */}
-      <div className="w-1/6 bg-gray-800 p-4 border-r border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Players</h2>
-        <div className="space-y-3">
-          {PLAYER_ICONS.map((player) => (
-            <Draggable
-              key={player.id}
-              onStop={(e) => handleDrop(e, player)}
-              position={{ x: 0, y: 0 }}
-            >
-              <div
-                className={`w-10 h-10 rounded-full ${player.color} cursor-pointer flex items-center justify-center`}
-                title={player.label}
-              >
-                {player.id}
-              </div>
-            </Draggable>
-          ))}
-        </div>
-      </div>
+    <>
+      <circle
+        cx={pos.x}
+        cy={pos.y}
+        r={14}
+        fill={piece.id.startsWith('R') ? 'red' : 'blue'}
+        stroke="black"
+        strokeWidth={2}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={{ cursor: 'grab' }}
+      />
+      <text
+        x={pos.x}
+        y={pos.y + 5}
+        textAnchor="middle"
+        fontSize="14"
+        fontWeight="bold"
+        fill="white"
+      >
+        {piece.label}
+      </text>
+    </>
+  );
+}
 
-      {/* Main Map Area */}
-      <div className="flex-1 relative" id="map-area" onClick={handleMapClick}>
-        <img
-          src={selectedMap}
-          alt="Selected Map"
-          className="w-full h-full object-cover"
-        />
+function Marker({ marker, onDrag }) {
+  const [dragging, setDragging] = useState(false);
+  const [pos, setPos] = useState({ x: marker.x, y: marker.y });
 
-        {/* Placed players */}
-        {placedPlayers.map((player) => (
-          <Draggable
-            key={player.id}
-            defaultPosition={{ x: player.x, y: player.y }}
-          >
-            <div
-              className={`w-8 h-8 rounded-full ${player.color} absolute flex items-center justify-center`}
-              title={player.label}
-            >
-              {player.id}
-            </div>
-          </Draggable>
-        ))}
+  const handlePointerDown = (e) => {
+    setDragging(true);
+    e.target.setPointerCapture(e.pointerId);
+  };
 
-        {/* Markers */}
-        {markers.map((marker) => (
-          <div
-            key={marker.id}
-            className="w-5 h-5 bg-white rounded-full absolute border-2 border-black"
-            style={{ left: marker.x, top: marker.y }}
-          ></div>
-        ))}
-      </div>
+  const handlePointerMove = (e) => {
+    if (!dragging) return;
+    const rect = e.target.ownerSVGElement.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+    x = Math.max(12, Math.min(x, MAP_WIDTH - 12));
+    y = Math.max(12, Math.min(y, MAP_HEIGHT - 12));
+    setPos({ x, y });
+  };
 
-      {/* Right Sidebar - Map Selection & Labels */}
-      <div className="w-1/6 bg-gray-800 p-4 border-l border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Settings</h2>
+  const handlePointerUp = (e) => {
+    setDragging(false);
+    onDrag(marker.id, pos.x, pos.y);
+    e.target.releasePointerCapture(e.pointerId);
+  };
 
-        {/* Map Selector */}
-        <label className="block mb-2">Select Map</label>
-        <select
-          className="w-full p-2 bg-gray-700 border border-gray-600 rounded mb-4"
-          onChange={(e) => setSelectedMap(e.target.value)}
-          value={selectedMap}
+  return (
+    <circle
+      cx={pos.x}
+      cy={pos.y}
+      r={12}
+      fill={marker.type === 'frag' ? 'orange' : 'yellow'}
+      stroke="black"
+      strokeWidth={2}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      style={{ cursor: 'grab' }}
+    />
+  );
+}
+
+export default function App() {
+  const [selectedMap, setSelectedMap] = useState(MAPS[0]);
+  const [redPieces, setRedPieces] = useState(initialPieces('R', 80));
+  const [bluePieces, setBluePieces] = useState(initialPieces('B', 520));
+  const [markers, setMarkers] = useState([]);
+  const [placingMarkerType, setPlacingMarkerType] = useState(null);
+
+  const updatePiecePosition = (id, x, y) => {
+    const updater = (list) =>
+      list.map((p) => (p.id === id ? { ...p, x, y } : p));
+    setRedPieces((prev) => updater(prev));
+    setBluePieces((prev) => updater(prev));
+  };
+
+  const updateMarkerPosition = (id, x, y) => {
+    setMarkers((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, x, y } : m))
+    );
+  };
+
+  const handleMapClick = (e) => {
+    if (!placingMarkerType) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setMarkers((prev) => [
+      ...prev,
+      {
+        id: `M${prev.length + 1}`,
+        type: placingMarkerType,
+        x,
+        y,
+      },
+    ]);
+    setPlacingMarkerType(null);
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#1a1a1a',
+        color: '#eee',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: 20,
+        fontFamily: 'Segoe UI, sans-serif',
+        gap: 20,
+      }}
+    >
+      {/* Left Sidebar */}
+      <div
+        style={{
+          width: 160,
+          backgroundColor: '#222',
+          padding: 15,
+          borderRadius: 8,
+          border: '2px solid #444',
+        }}
+      >
+        <h3>Markers</h3>
+        <button
+          onClick={() => setPlacingMarkerType(markerTypes.FRAG)}
+          style={{
+            width: '100%',
+            marginBottom: 8,
+            padding: '8px',
+            backgroundColor:
+              placingMarkerType === markerTypes.FRAG ? 'orange' : '#444',
+            color: 'white',
+            border: 'none',
+            borderRadius: 5,
+            cursor: 'pointer',
+          }}
         >
-          {MAPS.map((map) => (
-            <option key={map.name} value={map.image}>
-              {map.name}
+          Place Frag
+        </button>
+        <button
+          onClick={() => setPlacingMarkerType(markerTypes.FLASH)}
+          style={{
+            width: '100%',
+            marginBottom: 8,
+            padding: '8px',
+            backgroundColor:
+              placingMarkerType === markerTypes.FLASH ? 'yellow' : '#444',
+            color: '#000',
+            border: 'none',
+            borderRadius: 5,
+            cursor: 'pointer',
+          }}
+        >
+          Place Flash
+        </button>
+        <button
+          onClick={() => setPlacingMarkerType(null)}
+          style={{
+            width: '100%',
+            marginBottom: 8,
+            padding: '8px',
+            backgroundColor: '#666',
+            color: 'white',
+            border: 'none',
+            borderRadius: 5,
+            cursor: 'pointer',
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+      {/* Map Area */}
+      <div>
+        <h1 style={{ textAlign: 'center' }}>{selectedMap.name} Strat Planner</h1>
+        <svg
+          width={MAP_WIDTH}
+          height={MAP_HEIGHT}
+          style={{
+            border: '3px solid #555',
+            borderRadius: 10,
+            backgroundImage: `url(${selectedMap.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            display: 'block',
+            userSelect: 'none',
+          }}
+          onClick={handleMapClick}
+        >
+          {redPieces.map((p) => (
+            <DraggableCircle
+              key={p.id}
+              piece={p}
+              onDrag={updatePiecePosition}
+            />
+          ))}
+          {bluePieces.map((p) => (
+            <DraggableCircle
+              key={p.id}
+              piece={p}
+              onDrag={updatePiecePosition}
+            />
+          ))}
+          {markers.map((m) => (
+            <Marker key={m.id} marker={m} onDrag={updateMarkerPosition} />
+          ))}
+        </svg>
+      </div>
+
+      {/* Right Sidebar */}
+      <div
+        style={{
+          width: 200,
+          backgroundColor: '#222',
+          padding: 15,
+          borderRadius: 8,
+          border: '2px solid #444',
+        }}
+      >
+        <h3>Map</h3>
+        <select
+          value={selectedMap.name}
+          onChange={(e) =>
+            setSelectedMap(MAPS.find((m) => m.name === e.target.value))
+          }
+          style={{
+            width: '100%',
+            padding: '8px',
+            borderRadius: 5,
+            border: '1px solid #555',
+            backgroundColor: '#333',
+            color: '#eee',
+          }}
+        >
+          {MAPS.map((m) => (
+            <option key={m.name} value={m.name}>
+              {m.name}
             </option>
           ))}
         </select>
 
-        {/* Player Labels */}
-        <h3 className="text-lg font-semibold mb-2">Player Labels</h3>
-        <div className="space-y-2">
-          {PLAYER_ICONS.map((player, idx) => (
-            <div key={player.id} className="flex items-center space-x-2">
-              <span
-                className={`w-5 h-5 rounded-full ${player.color} inline-block`}
-              ></span>
+        <h3 style={{ marginTop: 20 }}>Players</h3>
+        <div>
+          <h4 style={{ color: 'red' }}>Red Team</h4>
+          {redPieces.map((p) => (
+            <div key={p.id} style={{ marginBottom: 6 }}>
               <input
                 type="text"
-                className="flex-1 p-1 bg-gray-700 border border-gray-600 rounded"
-                placeholder={player.label}
-                onChange={(e) => {
-                  PLAYER_ICONS[idx].label = e.target.value;
+                value={p.label}
+                onChange={(e) =>
+                  setRedPieces((prev) =>
+                    prev.map((x) =>
+                      x.id === p.id ? { ...x, label: e.target.value } : x
+                    )
+                  )
+                }
+                style={{
+                  width: '100%',
+                  padding: '4px',
+                  borderRadius: 4,
+                  border: '1px solid #555',
+                  backgroundColor: '#333',
+                  color: '#eee',
+                }}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <h4 style={{ color: 'blue', marginTop: 10 }}>Blue Team</h4>
+          {bluePieces.map((p) => (
+            <div key={p.id} style={{ marginBottom: 6 }}>
+              <input
+                type="text"
+                value={p.label}
+                onChange={(e) =>
+                  setBluePieces((prev) =>
+                    prev.map((x) =>
+                      x.id === p.id ? { ...x, label: e.target.value } : x
+                    )
+                  )
+                }
+                style={{
+                  width: '100%',
+                  padding: '4px',
+                  borderRadius: 4,
+                  border: '1px solid #555',
+                  backgroundColor: '#333',
+                  color: '#eee',
                 }}
               />
             </div>
@@ -150,5 +354,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
