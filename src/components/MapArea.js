@@ -1,10 +1,19 @@
 import PlayerCircle from './PlayerCircle';
 import Marker from './Marker';
+import { MAP_WIDTH, MAP_HEIGHT } from '../config';
 
-const MAP_WIDTH = 800;
-const MAP_HEIGHT = 600;
-
-const MapArea = ({ selectedMap, redPieces, bluePieces, markers, updatePiecePosition, updateMarkerPosition, handleMapClick }) => {
+export default function MapArea({
+  selectedMap,
+  redPieces,
+  bluePieces,
+  markers,
+  updatePiecePosition,
+  updateMarkerPosition,
+  removePlayer,
+  removeMarker,
+  placingMarkerType,
+  handleMapClick,
+}) {
   return (
     <div>
       <h1 style={{ textAlign: 'center' }}>{selectedMap.name} Strat Planner</h1>
@@ -23,18 +32,34 @@ const MapArea = ({ selectedMap, redPieces, bluePieces, markers, updatePiecePosit
         onClick={handleMapClick}
       >
         {redPieces.map((p) => (
-          <PlayerCircle key={p.id} piece={p} onDrag={updatePiecePosition} />
+          <PlayerCircle
+            key={p.id}
+            piece={p}
+            onDrag={updatePiecePosition}
+            onDelete={removePlayer}
+          />
         ))}
         {bluePieces.map((p) => (
-          <PlayerCircle key={p.id} piece={p} onDrag={updatePiecePosition} />
+          <PlayerCircle
+            key={p.id}
+            piece={p}
+            onDrag={updatePiecePosition}
+            onDelete={removePlayer}
+          />
         ))}
         {markers.map((m) => (
-          <Marker key={m.id} marker={m} onDrag={updateMarkerPosition} />
+          <Marker key={m.id} marker={m} onDrag={updateMarkerPosition} onDelete={removeMarker} />
         ))}
+
+        {/* Trash Can */}
+        <image
+          href="/icons/trash-can.png"
+          x={MAP_WIDTH - 60}
+          y={MAP_HEIGHT - 60}
+          width={50}
+          height={50}
+        />
       </svg>
     </div>
   );
-};
-
-export default MapArea;
-
+}
