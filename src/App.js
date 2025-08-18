@@ -25,8 +25,8 @@ const markerTypes = {
 };
 
 function DraggableCircle({ piece, onDrag, onLabelChange }) {
-  const [dragging, setDragging] = React.useState(false);
-  const [pos, setPos] = React.useState({ x: piece.x, y: piece.y });
+  const [dragging, setDragging] = useState(false);
+  const [pos, setPos] = useState({ x: piece.x, y: piece.y });
 
   function handleMouseDown(e) {
     e.preventDefault();
@@ -44,10 +44,7 @@ function DraggableCircle({ piece, onDrag, onLabelChange }) {
     const rect = e.currentTarget.parentElement.getBoundingClientRect();
     const newX = e.clientX - rect.left;
     const newY = e.clientY - rect.top;
-    setPos({
-      x: Math.min(Math.max(newX, 0), MAP_WIDTH),
-      y: Math.min(Math.max(newY, 0), MAP_HEIGHT),
-    });
+    setPos({ x: newX, y: newY });
   }
 
   return (
@@ -88,27 +85,26 @@ function DraggableCircle({ piece, onDrag, onLabelChange }) {
 }
 
 function Marker({ marker, onDrag }) {
-  const [dragging, setDragging] = React.useState(false);
-  const [pos, setPos] = React.useState({ x: marker.x, y: marker.y });
+  const [dragging, setDragging] = useState(false);
+  const [pos, setPos] = useState({ x: marker.x, y: marker.y });
 
   function handleMouseDown(e) {
     e.preventDefault();
     setDragging(true);
   }
+
   function handleMouseUp(e) {
     e.preventDefault();
     setDragging(false);
     onDrag(marker.id, pos.x, pos.y);
   }
+
   function handleMouseMove(e) {
     if (!dragging) return;
     const rect = e.currentTarget.parentElement.getBoundingClientRect();
     const newX = e.clientX - rect.left;
     const newY = e.clientY - rect.top;
-    setPos({
-      x: Math.min(Math.max(newX, 0), MAP_WIDTH),
-      y: Math.min(Math.max(newY, 0), MAP_HEIGHT),
-    });
+    setPos({ x: newX, y: newY });
   }
 
   const color = marker.type === markerTypes.FRAG ? 'orange' : 'yellow';
@@ -136,21 +132,13 @@ export default function App() {
   const [placingMarkerType, setPlacingMarkerType] = useState(null);
 
   function updatePiecePosition(id, x, y) {
-    setRedPieces((reds) =>
-      reds.map((p) => (p.id === id ? { ...p, x, y } : p))
-    );
-    setBluePieces((blues) =>
-      blues.map((p) => (p.id === id ? { ...p, x, y } : p))
-    );
+    setRedPieces((reds) => reds.map((p) => (p.id === id ? { ...p, x, y } : p)));
+    setBluePieces((blues) => blues.map((p) => (p.id === id ? { ...p, x, y } : p)));
   }
 
   function updatePieceLabel(id, newLabel) {
-    setRedPieces((reds) =>
-      reds.map((p) => (p.id === id ? { ...p, label: newLabel } : p))
-    );
-    setBluePieces((blues) =>
-      blues.map((p) => (p.id === id ? { ...p, label: newLabel } : p))
-    );
+    setRedPieces((reds) => reds.map((p) => (p.id === id ? { ...p, label: newLabel } : p)));
+    setBluePieces((blues) => blues.map((p) => (p.id === id ? { ...p, label: newLabel } : p)));
   }
 
   function handleMapClick(e) {
@@ -175,46 +163,70 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Onward Strat Planner - Suburbia</h1>
-      <div style={{ marginBottom: 10 }}>
-        <button onClick={() => setPlacingMarkerType(markerTypes.FRAG)}>Place Frag</button>{' '}
-        <button onClick={() => setPlacingMarkerType(markerTypes.FLASH)}>Place Flash</button>{' '}
-        <button onClick={() => setPlacingMarkerType(null)}>Cancel Placement</button>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#1e1e1e',
+      color: '#fff',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20
+    }}>
+      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+        
+        {/* Left Sidebar */}
+        <div style={{
+          backgroundColor: '#2e2e2e',
+          padding: '20px',
+          borderRadius: '10px',
+          border: '1px solid #444',
+          minWidth: '150px'
+        }}>
+          <h3>Markers</h3>
+          <button onClick={() => setPlacingMarkerType(markerTypes.FRAG)} style={{ marginBottom: 10 }}>Place Frag</button><br />
+          <button onClick={() => setPlacingMarkerType(markerTypes.FLASH)} style={{ marginBottom: 10 }}>Place Flash</button><br />
+          <button onClick={() => setPlacingMarkerType(null)}>Cancel</button>
+        </div>
+
+        {/* Main Map Area */}
+        <div>
+          <h1 style={{ textAlign: 'center', marginBottom: 10 }}>Suburbia Strat Planner</h1>
+          <svg
+            width={MAP_WIDTH}
+            height={MAP_HEIGHT}
+            style={{
+              border: '2px solid white',
+              backgroundImage: "url('/maps/suburbia-clean.png')",
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              userSelect: 'none',
+              display: 'block'
+            }}
+            onClick={handleMapClick}
+          >
+            {redPieces.map((p) => (
+              <DraggableCircle
+                key={p.id}
+                piece={p}
+                onDrag={updatePiecePosition}
+                onLabelChange={updatePieceLabel}
+              />
+            ))}
+            {bluePieces.map((p) => (
+              <DraggableCircle
+                key={p.id}
+                piece={p}
+                onDrag={updatePiecePosition}
+                onLabelChange={updatePieceLabel}
+              />
+            ))}
+            {markers.map((m) => (
+              <Marker key={m.id} marker={m} onDrag={updateMarkerPosition} />
+            ))}
+          </svg>
+        </div>
       </div>
-      <svg
-        width={MAP_WIDTH}
-        height={MAP_HEIGHT}
-        style={{
-          border: '2px solid black',
-          backgroundImage: "url('/maps/suburbia-clean.png')",
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          userSelect: 'none',
-        }}
-        onClick={handleMapClick}
-      >
-        {redPieces.map((p) => (
-          <DraggableCircle
-            key={p.id}
-            piece={p}
-            onDrag={updatePiecePosition}
-            onLabelChange={updatePieceLabel}
-          />
-        ))}
-        {bluePieces.map((p) => (
-          <DraggableCircle
-            key={p.id}
-            piece={p}
-            onDrag={updatePiecePosition}
-            onLabelChange={updatePieceLabel}
-          />
-        ))}
-        {markers.map((m) => (
-          <Marker key={m.id} marker={m} onDrag={updateMarkerPosition} />
-        ))}
-      </svg>
     </div>
   );
 }
