@@ -1,21 +1,14 @@
 import MapCanvas from './components/MapCanvas';
-import RoleSelector from './components/RoleSelector';
-import { usePlayerRoles } from './hooks/usePlayerRoles';
 
-function App() {
-  const { selectedRole, setRole } = usePlayerRoles();
-
+export default function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col md:flex-row">
-      <div className="flex-1">
-        <MapCanvas selectedRole={selectedRole} />
-      </div>
-      <div className="w-full md:w-64 p-4 bg-gray-800 border-l border-gray-700">
-        <RoleSelector selectedRole={selectedRole} setRole={setRole} />
-      </div>
+    <div className="min-h-screen flex flex-col bg-black text-white">
+      <header className="p-4 text-center text-xl font-bold">Onward Strategy Planner</header>
+      <main className="flex-1 overflow-hidden">
+        <div className="w-full h-full">
+          <MapCanvas />
+        </div>
+      </main>
     </div>
   );
 }
-
-export default App;
-
