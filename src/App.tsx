@@ -1,14 +1,16 @@
 import MapCanvas from './components/MapCanvas';
+import ShapePalette from './components/ShapePalette';
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <header className="p-4 text-center text-xl font-bold">Onward Strategy Planner</header>
-      <main className="flex-1 overflow-hidden">
-        <div className="w-full h-full">
-          <MapCanvas />
-        </div>
-      </main>
+    <div className="min-h-screen bg-gray-900 text-white flex">
+      {/* Sidebar with draggable shapes */}
+      <ShapePalette />
+
+      {/* Main map area */}
+      <div className="flex-1 flex items-center justify-center">
+        <MapCanvas />
+      </div>
     </div>
   );
 }
