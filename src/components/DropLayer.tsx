@@ -10,13 +10,14 @@ type DroppedShape = {
 
 export default function DropLayer() {
   const [shapes, setShapes] = useState<DroppedShape[]>([]);
+  const shapeSize = 24; // px — matches w-6 h-6
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left - shapeSize / 2;
+    const y = e.clientY - rect.top - shapeSize / 2;
 
     const id = e.dataTransfer.getData('shape-id') || crypto.randomUUID();
     const type = e.dataTransfer.getData('shape-type') as DroppedShape['type'];
