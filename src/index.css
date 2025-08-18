@@ -1,4 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Custom shape clip paths */
+.clip-hexagon {
+  clip-path: polygon(
+    25% 0%, 75% 0%,
+    100% 50%, 75% 100%,
+    25% 100%, 0% 50%
+  );
+}
+
+.clip-diamond {
+  clip-path: polygon(
+    50% 0%, 100% 50%,
+    50% 100%, 0% 50%
+  );
+}
 
