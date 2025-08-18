@@ -2,8 +2,11 @@ import { useState } from 'react';
 
 const MAP_WIDTH = 800;
 const MAP_HEIGHT = 600;
+const TRASH_X = MAP_WIDTH - 60;
+const TRASH_Y = MAP_HEIGHT - 60;
+const TRASH_SIZE = 50;
 
-const PlayerCircle = ({ piece, onDrag }) => {
+export default function PlayerCircle({ piece, onDrag, onDelete }) {
   const [dragging, setDragging] = useState(false);
   const [pos, setPos] = useState({ x: piece.x, y: piece.y });
 
@@ -25,8 +28,19 @@ const PlayerCircle = ({ piece, onDrag }) => {
 
   const handlePointerUp = (e) => {
     setDragging(false);
-    onDrag(piece.id, pos.x, pos.y);
     e.target.releasePointerCapture(e.pointerId);
+
+    // Check if dropped on trash can
+    if (
+      pos.x >= TRASH_X &&
+      pos.x <= TRASH_X + TRASH_SIZE &&
+      pos.y >= TRASH_Y &&
+      pos.y <= TRASH_Y + TRASH_SIZE
+    ) {
+      onDelete(piece.id);
+    } else {
+      onDrag(piece.id, pos.x, pos.y);
+    }
   };
 
   return (
@@ -36,15 +50,12 @@ const PlayerCircle = ({ piece, onDrag }) => {
         cy={pos.y}
         r={14}
         fill={piece.id.startsWith('R') ? 'red' : 'blue'}
-        stroke={dragging ? 'yellow' : 'black'} // <- Glow when dragging
-        strokeWidth={dragging ? 4 : 2}         // <- Thicker stroke for effect
+        stroke={dragging ? 'yellow' : 'black'}
+        strokeWidth={dragging ? 4 : 2}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        style={{
-          cursor: 'grab',
-          transition: 'stroke 0.1s, stroke-width 0.1s', // smooth transition
-        }}
+        style={{ cursor: 'grab', transition: 'stroke 0.1s, stroke-width 0.1s' }}
       />
       <text
         x={pos.x}
@@ -58,6 +69,4 @@ const PlayerCircle = ({ piece, onDrag }) => {
       </text>
     </>
   );
-};
-
-export default PlayerCircle;
+}
