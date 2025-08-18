@@ -10,26 +10,44 @@ export default function MapCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const resizeCanvas = () => {
+    const img = new Image();
+    img.src = new URL('../assets/map.png', import.meta.url).href;
+
+    const drawImageScaled = () => {
+      if (!canvas || !ctx || !img.complete) return;
+
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
 
-      const img = new Image();
-      img.src = new URL('../assets/map.png', import.meta.url).href;
+      const canvasAspect = canvas.width / canvas.height;
+      const imageAspect = img.width / img.height;
 
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
+      let drawWidth = canvas.width;
+      let drawHeight = canvas.height;
+
+      if (imageAspect > canvasAspect) {
+        drawHeight = canvas.width / imageAspect;
+      } else {
+        drawWidth = canvas.height * imageAspect;
+      }
+
+      const offsetX = (canvas.width - drawWidth) / 2;
+      const offsetY = (canvas.height - drawHeight) / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
     };
 
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    return () => window.removeEventListener('resize', resizeCanvas);
+    img.onload = drawImageScaled;
+    window.addEventListener('resize', drawImageScaled);
+
+    return () => {
+      window.removeEventListener('resize', drawImageScaled);
+    };
   }, []);
 
   return (
-    <div className="w-full h-full bg-gray-900 overflow-hidden">
+    <div className="w-full h-full bg-gray-900 flex items-center justify-center">
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );
